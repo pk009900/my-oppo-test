@@ -40,7 +40,7 @@
             
             // This format attempts to bypass Chrome's security by specifying the exact package
             // We use the 'oppomarket' scheme as it is the most common across HeyTap
-            const intent = `intent://${path}?url=${targetUrl}#Intent;scheme=oppomarket;package=${pkg};S.browser_fallback_url=${targetUrl};end`;
+            const intent = `intent://#Intent;action=android.intent.action.VIEW;data=https://pk009900.github.io/my-oppo-test/;package=${pkg};end`;
             
             window.location.href = intent;
         }
